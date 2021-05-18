@@ -24,13 +24,15 @@ show_help() {
 cat << EOF
 Usage: $(basename "$0") <options>
 
-    -h, --help               Display help
-    -v, --version            The chart-releaser version to use (default: $DEFAULT_CHART_RELEASER_VERSION)"
-        --config             The path to the chart-releaser config file
-    -d, --charts-dir         The charts directory (default: charts)
-    -u, --charts-repo-url    The GitHub Pages URL to the charts repo (default: https://<owner>.github.io/<repo>)
-    -o, --owner              The repo owner
-    -r, --repo               The repo name
+    -h, --help                 Display help
+    -v, --version              The chart-releaser version to use (default: $DEFAULT_CHART_RELEASER_VERSION)"
+        --config               The path to the chart-releaser config file
+    -d, --charts-dir           The charts directory (default: charts)
+    -u, --charts-repo-url      The GitHub Pages URL to the charts repo (default: https://<owner>.github.io/<repo>)
+    -o, --owner                The repo owner
+    -r, --repo                 The repo name
+    -p, --packages-with-index  Host the package files in the GitHub Pages branch
+    
 EOF
 }
 
@@ -151,6 +153,16 @@ parse_command_line() {
                     exit 1
                 fi
                 ;;
+            -p|--packages-with-index)
+                if [[ -n "${2:-}" ]]; then
+                    packages_with_index="$2"
+                    shift
+                else
+                    echo "ERROR: '-p|--packages-with-index' cannot be empty." >&2
+                    show_help
+                    exit 1
+                fi
+                ;;
             *)
                 break
                 ;;
@@ -249,14 +261,23 @@ release_charts() {
         args+=(--config "$config")
     fi
 
+    if [[ -n "$packages_with_index" && "$packages_with_index" == "true" ]]; then
+        args+=(--packages-with-index --push)
+    fi
+
     echo 'Releasing charts...'
     cr upload "${args[@]}"
 }
 
 update_index() {
+    git fetch
     local args=(-o "$owner" -r "$repo" -c "$charts_repo_url" --push)
     if [[ -n "$config" ]]; then
         args+=(--config "$config")
+    fi
+
+    if [[ -n "$packages_with_index" && "$packages_with_index" == "true" ]]; then
+        args+=(--packages-with-index)
     fi
 
     echo 'Updating charts repo index...'

@@ -19,6 +19,7 @@ For more information on inputs, see the [API Documentation](https://developer.gi
 - `config`: Optional config file for chart-releaser
 - `charts_dir`: The charts directory
 - `charts_repo_url`: The GitHub Pages URL to the charts repo (default: `https://<owner>.github.io/<project>`)
+- `packages_with_index`: Save a copy of the package files to the GitHub pages branch and reference them in the index
 
 ### Example Workflow
 
